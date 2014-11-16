@@ -8,7 +8,7 @@
 //		Includes
 //*****************************************************************************
 #include "HelperFunctions.h"
-#include "LEDDistanceSynthesizer.h"
+#include "Project.h"
 
 //*****************************************************************************
 //		Global Functions

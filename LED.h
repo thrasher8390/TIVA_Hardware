@@ -8,7 +8,7 @@
 #ifndef LED_H_
 #define LED_H_
 
-#include "LEDDistanceSynthesizer.h"
+#include "Project.h"
 
 //============================================================
 //ENUMS
