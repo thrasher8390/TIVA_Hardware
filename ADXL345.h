@@ -12,11 +12,13 @@
 //		Includes
 //*****************************************************************************
 #include "Project.h"
-#include "I2C.h"
+
 
 //*****************************************************************************
 //		Defines
 //*****************************************************************************
+#define ADXL345_ADDRESS_0 		(0x001D)
+
 #define ADXL345_POWER_CTL  		(0x2D)	//Power Control Register
 #define ADXL345_DATA_FORMAT 	(0x31)
 #define ADXL345_INT_ENABLE 		(0x2E)
