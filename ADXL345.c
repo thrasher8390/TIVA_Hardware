@@ -8,12 +8,13 @@
 //		Includes
 //*****************************************************************************
 #include "ADXL345.h"
+#include "I2C.h"
 
 
 //*****************************************************************************
 //		Defines
 //*****************************************************************************
-#define ADXL345_ADDRESS_0 (0x001D)
+
 //*****************************************************************************
 //		Global Functions
 //*****************************************************************************
@@ -41,9 +42,10 @@ void ADXL345_Init()
 	//Fifo_control
 	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS);
 }
-uint8_t readData;
+
 uint8_t ADXL345_Read()
 {
+	uint8_t readData;
 	//Lets just read the uid at first
 	UARTprintf("ReadValue UID: %d\n",I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID));;
 	UARTprintf("ReadValueX: %d\n",(((I2C_Read0(ADXL345_ADDRESS_0, DATAX1)&0x03)<<8) + I2C_Read0(ADXL345_ADDRESS_0, DATAX0)));
