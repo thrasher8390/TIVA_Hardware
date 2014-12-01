@@ -50,14 +50,10 @@ void DelayMS(uint32_t ui32MilliSeconds)
 		//
 		// Wait until the SysTick value is less than 1000.
 		//
-		while (SysTickValueGet() > 1)
-		{
-		}
-
-		//
-		// Wait until the SysTick value is greater than 1000.
-		//
-		while (SysTickValueGet() < 1)
+		//TODO Confirm systick is a down counter!
+		uint32_t start= SysTickValueGet();
+		uint32_t end = start - 6400;
+		while (SysTickValueGet() > end)
 		{
 		}
 	}
