@@ -48,29 +48,31 @@ void I2C_Init0(void)
 
 uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
 {
-   //specify that we want to communicate to device address with an intended write to bus
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
+	//specify that we are writing (a register address) to the
+	//slave device
+	I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
 
-   //the register to be read
-   I2CMasterDataPut(I2C0_BASE, device_register);
+	//specify register to be read
+	I2CMasterDataPut(I2C0_BASE, device_register);
 
-   //send control byte and register address byte to slave device
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
+	//send control byte and register address byte to slave device
+	I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
 
-   //wait for MCU to complete send transaction
-   while(I2CMasterBusy(I2C0_BASE));
+	//wait for MCU to finish transaction
+	while(I2CMasterBusy(I2C0_BASE));
 
-   //read from the specified slave device
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
+	//specify that we are going to read from slave device
+	I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
 
-   //send control byte and read from the register from the MCU
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_RECEIVE);
+	//send control byte and read from the register we
+	//specified
+	I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_RECEIVE);
 
-   //wait while checking for MCU to complete the transaction
-   while(I2CMasterBusy(I2C0_BASE));
+	//wait for MCU to finish transaction
+	while(I2CMasterBusy(I2C0_BASE));
 
-   //Get the data from the MCU register and return to caller
-   return( (uint32_t)I2CMasterDataGet(I2C0_BASE));
+	//return data pulled from the specified register
+	return I2CMasterDataGet(I2C0_BASE);
  }
 
 void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
@@ -87,14 +89,26 @@ void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t devic
    //wait for MCU to finish transaction
    while(I2CMasterBusy(I2C0_BASE));
 
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
+   //********************Register
+   //put next piece of data into I2C FIFO
+   I2CMasterDataPut(I2C0_BASE, device_register);
+   //******************Continue
+   //send next data that was just placed into FIFO
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
+   //******************Wait
+   // Wait until MCU is done transferring.
+   while(I2CMasterBusy(I2C0_BASE));
 
+   //TODO We can make this into a multiple write function!
+   ///RIGHT HERE WE COULD SEND MORE DATA CONTINUE AND WAIT!
+
+   //******************Send Data
    //specify data to be written to the above mentioned device_register
    I2CMasterDataPut(I2C0_BASE, device_data);
-
+   //******************Finish
    //wait while checking for MCU to complete the transaction
    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
-
+   //******************Wait
    //wait for MCU & device to complete transaction
    while(I2CMasterBusy(I2C0_BASE));
 }
