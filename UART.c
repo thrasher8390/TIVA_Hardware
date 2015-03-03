@@ -83,16 +83,8 @@ static void initUART3()
    //
    // Use the internal 16MHz oscillator as the UART clock source.
    //
-   UARTConfigSetExpClk(UART3_BASE, SYSTEM_CLOCK_FREQUENCY, 38400,
+   UARTConfigSetExpClk(UART3_BASE, SYSTEM_CLOCK_FREQUENCY, 9600,
          (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
-
-   //
-   // Enable the UART interrupt.
-   //UARTFIFOLevelSet(UART3_BASE, UART_FIFO_TX1_8, UART_FIFO_RX1_8);
-
-   //
-   // Remember which interrupt we are dealing with.
-   //
 
    //
    // We are configured for buffered output so enable the master interrupt
@@ -101,7 +93,7 @@ static void initUART3()
    // in the transmit buffer.
    //
    UARTIntDisable(UART3_BASE, 0xFFFFFFFF);
-   UARTIntEnable(UART3_BASE, UART_INT_RX | UART_INT_RT);
+   UARTIntEnable(UART3_BASE, UART_INT_RT);
    UARTEnable(UART3_BASE);
    IntEnable(INT_UART3);
 }
@@ -124,49 +116,3 @@ void UART_Send(const uint8_t *pui8Buffer, uint32_t ui32Count)
    }
 }
 
-int32_t receive;
-
-/*!
- * \brief Interrupt Handler for UART3
- */
-void UART3IntHandler(void)
-{
-   uint32_t ui32Status;
-
-   //
-   // Get the interrrupt status.
-   //
-   ui32Status = UARTIntStatus(UART3_BASE, 0xff);
-
-   //
-   // Clear the asserted interrupts.
-   //
-   UARTIntClear(UART3_BASE, ui32Status);
-
-   //
-   // Loop while there are characters in the receive FIFO.
-   //
-   while (UARTCharsAvail(UART3_BASE)) {
-      //
-      // Read the next character from the UART and write it back to the UART.
-      //
-
-      receive = UARTCharGetNonBlocking(UART3_BASE);
-
-      //
-      // Blink the LED to show a character transfer is occuring.
-      //
-      LED_ChangeColor(LED_RED_BLUE);
-
-      //
-      // Delay for 1 millisecond.  Each SysCtlDelay is about 3 clocks.
-      //
-      DelayMS(1000);
-
-      //
-      // Turn off the LED
-      //
-      LED_ChangeColor(LED_RED_GREEN);
-
-   }
-}
