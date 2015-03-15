@@ -18,4 +18,6 @@
 
 extern void UART_Initialize(void);
 
+extern void UART3IntHandler(void);
+extern void UART_Send(const uint8_t *pui8Buffer, uint32_t ui32Count);
 #endif /* UART_H_ */
