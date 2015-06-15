@@ -17,9 +17,10 @@
 //*****************************************************************************
 //		Global Functions
 //*****************************************************************************
-extern void 	I2C_Init0();
-extern uint32_t		I2C_Read0(uint16_t , uint16_t );
-extern void 	I2C_Write0(uint16_t , uint16_t , uint8_t );
+extern void       I2C_Init0();
+extern uint32_t   I2C_Read0(uint16_t , uint16_t );
+extern void       I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8_t *startofread, uint32_t numBytes);
+extern void 	   I2C_Write0(uint16_t , uint16_t , uint8_t );
 
 
 

@@ -75,21 +75,28 @@ void ADXL345_Init()
  */
 void ADXL345_Read()
 {
+
 	//Lets just read the uid at first
 	//TODO Implement multi byte read so data does not change between reads!
-	uint8_t xHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
-	uint8_t xLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
-	InstantaneousReadings.x = ((xHigh << 8) + xLow);
+   I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
+   I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
 
-	uint8_t yHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAY1);
-	uint8_t yLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAY0);
-	InstantaneousReadings.y = ((yHigh << 8) + yLow);
 
-	uint8_t zHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAZ1);
-	uint8_t zLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAZ0);
-	InstantaneousReadings.z = ((zHigh << 8) + zLow);
+	uint8_t ADXLReadings[6];
+   //TODO Implement multi byte read so data does not change between reads!
+	I2C_Read0Multiiple(ADXL345_ADDRESS_0,DATAX0,ADXLReadings, 6);
+	uint8_t xHigh  = ADXLReadings[1];
+	uint8_t xLow   = ADXLReadings[0];
+   InstantaneousReadings.x = ((xHigh << 8) + xLow);
 
-	//printADXL345Readings("Instantaneous ADXL345\n", InstantaneousReadings);
+   uint8_t yHigh  = ADXLReadings[3];
+   uint8_t yLow   = ADXLReadings[2];
+   InstantaneousReadings.y = ((yHigh << 8) + yLow);
+
+   uint8_t zHigh  = ADXLReadings[5];
+   uint8_t zLow   = ADXLReadings[4];
+   InstantaneousReadings.z = ((zHigh << 8) + zLow);
+   //printADXL345Readings("Instantaneous ADXL345\n", InstantaneousReadings);
 
 	averageReadings();
 }
@@ -123,7 +130,7 @@ void averageReadings()
 		readingSum.x = 0;
 		readingSum.y = 0;
 		readingSum.z = 0;
-		printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
+		//printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
 	}
 }
 

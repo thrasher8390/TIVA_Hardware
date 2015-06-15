@@ -39,7 +39,7 @@ void I2C_Init0(void)
    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
    // If false the data rate is set to 100kbps and if true the data rate will
    // be set to 400kbps.
-   I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), false);
+   I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), TRUE);
 
    //Thrasher - Why was this here?
    //clear I2C FIFOs
@@ -73,6 +73,40 @@ uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
 
 	//return data pulled from the specified register
 	return I2CMasterDataGet(I2C0_BASE);
+ }
+
+void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8_t *startofread, uint32_t numBytes)
+{
+   //specify that we are writing (a register address) to the
+   //slave device
+   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
+
+   I2CMasterDataPut(I2C0_BASE, device_register);
+   //specify register to be read
+   I2CMasterDataPut(I2C0_BASE, device_register | 0x40);
+
+   //send control byte and register address byte to slave device
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
+
+   //wait for MCU to finish transaction
+   while(I2CMasterBusy(I2C0_BASE));
+
+   //specify that we are going to read from slave device
+   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
+
+   //send control byte and read from the register we
+   //specified
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
+   uint32_t i;
+   for(i = 0; i < numBytes; i++)
+   {
+      //wait for MCU to finish transaction
+      while(I2CMasterBusy(I2C0_BASE));
+      //return data pulled from the specified register
+      startofread[i] = I2CMasterDataGet(I2C0_BASE);
+      I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+   }
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
  }
 
 void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)

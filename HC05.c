@@ -61,7 +61,7 @@ BLUETOOTH_CMD HC05__GetCommand()
    {
     //We have processed all of our commands! YAY we are fast!!!
     /* Toggle LED3 */
-    LED_ChangeColor(LED_RED);
+    //LED_ChangeColor(LED_RED);
    }
    //Wrap the index back to COMMAND_FIFO_START_INDEX
    CommandFIFOReadIndex &= COMMAND_FIFO_BIT_MASK;

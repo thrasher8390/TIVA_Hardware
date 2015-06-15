@@ -10,7 +10,6 @@
 //*****************************************************************************
 #include "GPIO.h"
 #include "LED.h"
-#include "Ultrasonic.h"
 
 //*****************************************************************************
 //		Global Functions
@@ -20,37 +19,28 @@
  */
 void GPIO_Initialize(void)
 {
-	//
-	// Enable the peripherals used by this example.
-	//
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+	//PORT D
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+   //D-0 = UNUSED
+   //D-1 = UNUSED
+   //D-2 = UNUSED
+   //D-3 = UNUSED
+   //D-4 = UNUSED
+   //D-5 = UNUSED
+   //D-6 = TESTPOINT 0
+	GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
+	GPIOPinWrite(TESTPOINT_0_PORT, 0xFF, CLEAR);
 
-
-	//Set up Port D Pin 3 (PD3) as a both edge interrupt
-	 // Set up our Echo interrupt
-	GPIOPinTypeGPIOInput(ULTRASONIC_SENSOR_PORT, ECHO_PIN);
-	IntMasterEnable();																// Allow interrupts
-	GPIOIntTypeSet(ULTRASONIC_SENSOR_PORT, ECHO_PIN, GPIO_BOTH_EDGES);
-	GPIOIntClear(ULTRASONIC_SENSOR_PORT, ECHO_PIN);
-	GPIOIntEnable(ULTRASONIC_SENSOR_PORT, ECHO_PIN);
-	//
-	// Enable Port D at echo timer.
-	//
-	IntEnable(INT_GPIOD);
-	//
-	// Set the interrupt priorities so they are all equal.
-	//
-	IntPrioritySet(INT_GPIOD, 0x01);
-
-
-	//Set up our Trigger
-	GPIOPinTypeGPIOOutput(ULTRASONIC_SENSOR_PORT, TRIGGER_PIN);
-	GPIOPinWrite(ULTRASONIC_SENSOR_PORT, 0xFF, CLEAR);
-
-	//
-	// Configure the PF1-PF3 to be outputs to indicate entry/exit of one
-	// of the interrupt handlers.
-	//
-	GPIOPinTypeGPIOOutput(LED_PORT, LED_RED_PIN | LED_GREEN_PIN | LED_BLUE_PIN);
+	//PORT F
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+   //F-0 = UNUSED
+   //F-1 = RED LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_RED_PIN);
+   //F-2 = BLUE LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_BLUE_PIN);
+   //F-3 = GREEN LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_GREEN_PIN);
+   //F-4 = UNUSED
+   //F-5 = UNUSED
+   //F-6 = UNUSED
 }
