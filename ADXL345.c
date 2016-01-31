@@ -139,7 +139,7 @@ void averageReadings()
  */
 void printADXL345Readings(const char *tag, struct ADXL345_Data data)
 {
-	if(true)
+	if(false)
 	{
 		UARTprintf(tag);
 		UARTprintf("ReadValueX: %d\n",data.x);
@@ -147,5 +147,10 @@ void printADXL345Readings(const char *tag, struct ADXL345_Data data)
 		UARTprintf("ReadValueZ: %d\n",data.z);
 		UARTprintf("\n");
 	}
+	if(true)
+	{
+		UARTprintf("%d,%d,%d\n",data.x,data.y,data.z);
+	}
+
 }
 

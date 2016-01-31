@@ -40,10 +40,18 @@ void I2C_Init0(void)
    // If false the data rate is set to 100kbps and if true the data rate will
    // be set to 400kbps.
    I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), TRUE);
+}
 
-   //Thrasher - Why was this here?
-   //clear I2C FIFOs
-   //HWREG(I2C0_BASE + I2C_O_FIFOCTL) = 80008000;
+BOOLEAN I2C_WRITEVERIFY0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
+{
+	BOOLEAN writeSuccessful = FALSE;
+	I2C_Write0(device_address,device_register,device_data);
+	uint32_t read = I2C_Read0(device_address,device_register);
+	if(read == device_data)
+	{
+		writeSuccessful = TRUE;
+	}
+	return writeSuccessful;
 }
 
 uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
