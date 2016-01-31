@@ -46,23 +46,28 @@ void ADXL345_Init()
 	//Init I2C Module 0
 	I2C_Init0();
 
-	//DataFormat
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT, ADXL345_DATAFORMAT_4G);
 	//Power Control
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_UNKNOWN);
-	//Int Enable/
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_ENABLE);
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_UNKNOWN);
+
+	//Int Disable/
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_DISABLE);
+
 	//Int Map
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_INT_MAP,ADXL345_INTMAP_INT1);
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_MAP,ADXL345_INTMAP_INT1);
+
+	//Int Enable/
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_ENABLE);
+
 	//BW_rate
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100);
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100);
+
 	//Fifo_control
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS);
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS);
 
 	//Set Data Format (pg26)
 	//SELF_TEST = 0 / SPI = 0 / INT_INVERT = 0 / 0 / FULL_RES = 0 / Justify = 0 / Range = 00
 	uint8_t dataFormat = 0x00;
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat);
+	I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat);
 
 	//Init Information
 	DeviceID = I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID);
@@ -75,12 +80,10 @@ void ADXL345_Init()
  */
 void ADXL345_Read()
 {
-
-	//Lets just read the uid at first
-	//TODO Implement multi byte read so data does not change between reads!
-   I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
-   I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
-
+   //Lets just read the uid at first
+   //TODO Implement multi byte read so data does not change between reads!
+  // I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
+  // I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
 
 	uint8_t ADXLReadings[6];
    //TODO Implement multi byte read so data does not change between reads!
@@ -96,9 +99,8 @@ void ADXL345_Read()
    uint8_t zHigh  = ADXLReadings[5];
    uint8_t zLow   = ADXLReadings[4];
    InstantaneousReadings.z = ((zHigh << 8) + zLow);
-   //printADXL345Readings("Instantaneous ADXL345\n", InstantaneousReadings);
 
-	averageReadings();
+   averageReadings();
 }
 
 //*****************************************************************************
@@ -130,7 +132,7 @@ void averageReadings()
 		readingSum.x = 0;
 		readingSum.y = 0;
 		readingSum.z = 0;
-		//printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
+		printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
 	}
 }
 

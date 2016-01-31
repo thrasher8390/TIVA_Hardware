@@ -89,7 +89,7 @@ void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8
    //slave device
    I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
 
-   I2CMasterDataPut(I2C0_BASE, device_register);
+   //I2CMasterDataPut(I2C0_BASE, device_register);
    //specify register to be read
    I2CMasterDataPut(I2C0_BASE, device_register | 0x40);
 

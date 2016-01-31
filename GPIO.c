@@ -19,6 +19,19 @@
  */
 void GPIO_Initialize(void)
 {
+   //PORT B
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+   //B-0 = UNUSED
+   //B-1 = UNUSED
+   //B-2 = UNUSED
+   //B-3 = UNUSED
+   //B-4 = PWM for Motor
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_4);
+   //B-5 = PWM for Motor
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_5);
+   //B-6 = UNUSED
+   //B-7 = UNUSED
+   //B-8 = UNUSED
 	//PORT D
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
    //D-0 = UNUSED

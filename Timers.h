@@ -23,6 +23,11 @@
 #define TIMER0_PRESCALER 	(SYSTEM_CLOCK_FREQUENCY_MHZ) //each count is 1 us
 #define Timer0_CLOCK_MHZ   (SYSTEM_CLOCK_FREQUENCY_MHZ/TIMER0_PRESCALER)
 
+//Timer being used for PWM
+#define TIMER1             (TIMER1_BASE)
+#define TIMER1_PRESCALER   (SYSTEM_CLOCK_FREQUENCY_MHZ) //each count is 1 us
+#define Timer1_CLOCK_MHZ   (SYSTEM_CLOCK_FREQUENCY_MHZ/TIMER0_PRESCALER)
+
 #define TIMER0_COUNT_US()	(TimerValueGet(TIMER0, TIMER_A))
 //============================================================
 //Global Functions
