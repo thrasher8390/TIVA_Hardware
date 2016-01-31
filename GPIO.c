@@ -11,6 +11,12 @@
 #include "GPIO.h"
 #include "LED.h"
 
+
+//*****************************************************************************
+//    Local static Functions
+//*****************************************************************************
+static void portBInitialize(void);
+
 //*****************************************************************************
 //		Global Functions
 //*****************************************************************************
@@ -19,19 +25,7 @@
  */
 void GPIO_Initialize(void)
 {
-   //PORT B
-   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-   //B-0 = UNUSED
-   //B-1 = UNUSED
-   //B-2 = UNUSED
-   //B-3 = UNUSED
-   //B-4 = PWM for Motor
-   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_4);
-   //B-5 = PWM for Motor
-   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_5);
-   //B-6 = UNUSED
-   //B-7 = UNUSED
-   //B-8 = UNUSED
+   portBInitialize();
 	//PORT D
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
    //D-0 = UNUSED
@@ -56,4 +50,31 @@ void GPIO_Initialize(void)
    //F-4 = UNUSED
    //F-5 = UNUSED
    //F-6 = UNUSED
+}
+
+//*****************************************************************************
+//    Local static Functions
+//*****************************************************************************
+
+static void portBInitialize(void)
+{
+   //PORT B
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+   //B-0 = UNUSED
+   //B-1 = UNUSED
+   //B-2 = UNUSED
+   //B-3 = UNUSED
+   //B-4 = PWM for Motor
+   GPIOPinConfigure(GPIO_PB4_M0PWM2);
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_4);
+   //B-5 = PWM for Motor
+   GPIOPinConfigure(GPIO_PB5_M0PWM3);
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_5);
+   //B-6 = PWM for Motor
+   GPIOPinConfigure(GPIO_PB6_M0PWM0);
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
+   //B-7 = PWM for Motor
+   GPIOPinConfigure(GPIO_PB7_M0PWM1);
+   GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_7);
+   //B-8 = UNUSED
 }

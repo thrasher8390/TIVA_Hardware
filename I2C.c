@@ -115,7 +115,7 @@ void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8
       I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
    }
    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
- }
+}
 
 void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
 {

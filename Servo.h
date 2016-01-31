@@ -22,13 +22,14 @@ typedef enum
    NUM_SERVO_MOTORS
 } SERVO_NAME;
 
+/* Defines ---- --------------------------------------------------------------*/
+
 /* Public macro --------------------------------------------------------------*/
+
 /* Public variables ----------------------------------------------------------*/
+
 /* Public function prototypes ------------------------------------------------*/
 extern void ServoModule_Init(void);
-extern bool ServoModule_SetServoAngle(UINT8 servo, UINT16 angle);
-extern void ServoModule_DeassertServoOutputs(UINT8 captureCompareNumTriggered);
-extern void ServoModule_AssertServoOutputs(void);
-extern void ServoModule_Fire(uint8_t numberToFire);
+extern bool ServoModule_SetServoPower(UINT8 servo, UINT16 angle);
 
 #endif /* __SERVO_CONTROL_H */

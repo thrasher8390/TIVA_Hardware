@@ -66,7 +66,7 @@ BLUETOOTH_CMD HC05__GetCommand()
    //Wrap the index back to COMMAND_FIFO_START_INDEX
    CommandFIFOReadIndex &= COMMAND_FIFO_BIT_MASK;
    return CMD;
-   }
+}
 
 
 int32_t readData;
