@@ -90,6 +90,17 @@ bool ServoModule_SetServoPower(UINT8 servo, UINT16 powerUS)
   return retVal;
 }
 
+/**
+  * @brief  Set the angle for a specific servo motor
+  * @param  SERVO_NAME servo
+  *         UINT16 angle
+  * @retval FALSE if the angle was invalid for the motor specified, otherwise TRUE
+  */
+UINT32 ServoModule_GetServoPower(UINT8 servo)
+{
+   return ServoMotors.Motors[servo].powerUS;
+}
+
 /* Private function ----------------------------------------------------------*/
 
 /**

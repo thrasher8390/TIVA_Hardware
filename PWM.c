@@ -14,7 +14,7 @@
 //    Defines
 //*****************************************************************************
 //Initial period should be 0
-#define PWM_PERIOD_INITIAL (PWM_US(20000))//DT this sould be looked at.
+#define PWM_PERIOD_INITIAL (PWM_US(10000))//DT this sould be looked at.
 #define PWM_WIDTH_INITIAL  (PWM_US(1))
 //*****************************************************************************
 //    Local Static Defines

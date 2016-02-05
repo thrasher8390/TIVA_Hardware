@@ -30,6 +30,7 @@ typedef enum
 
 /* Public function prototypes ------------------------------------------------*/
 extern void ServoModule_Init(void);
+extern UINT32 ServoModule_GetServoPower(UINT8 servo);
 extern bool ServoModule_SetServoPower(UINT8 servo, UINT16 angle);
 
 #endif /* __SERVO_CONTROL_H */

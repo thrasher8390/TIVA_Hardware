@@ -47,6 +47,24 @@ void HC05_Initialize()
 }
 
 /*
+*\brief Adding command to FIFO
+*/
+void addCommandToFifo(BLUETOOTH_CMD addedCMD)
+{
+   //Don't add command if you are going to overwrite the next command
+   if(((CommandFIFOWriteIndex+1) & COMMAND_FIFO_BIT_MASK) != CommandFIFOReadIndex)
+   {
+   CommandFIFO[CommandFIFOWriteIndex++] = addedCMD;
+   }
+   else
+   {
+    //ERROR Our Command Fifo is about to overwrite our next command
+   }
+   //wrap the index back to COMMAND_FIFO_START_INDEX
+   CommandFIFOWriteIndex &= COMMAND_FIFO_BIT_MASK;
+}
+
+/*
 *\brief Returns a command if there is one that needs to be proccessed
 */
 BLUETOOTH_CMD HC05__GetCommand()
@@ -134,23 +152,5 @@ void HC05__RxInterrupt(void)
          }
       }
    }
-}
-
-/*
-*\brief Adding command to FIFO
-*/
-void addCommandToFifo(BLUETOOTH_CMD addedCMD)
-{
-   //Don't add command if you are going to overwrite the next command
-   if(((CommandFIFOWriteIndex+1) & COMMAND_FIFO_BIT_MASK) != CommandFIFOReadIndex)
-   {
-   CommandFIFO[CommandFIFOWriteIndex++] = addedCMD;
-   }
-   else
-   {
-    //ERROR Our Command Fifo is about to overwrite our next command
-   }
-   //wrap the index back to COMMAND_FIFO_START_INDEX
-   CommandFIFOWriteIndex &= COMMAND_FIFO_BIT_MASK;
 }
 

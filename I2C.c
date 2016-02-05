@@ -119,30 +119,17 @@ void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8
 
 void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
 {
+   //send control byte and register address byte to slave device
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
+
    //specify that we want to communicate to device address with an intended write to bus
    I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
 
    //register to be read
    I2CMasterDataPut(I2C0_BASE, device_register);
 
-   //send control byte and register address byte to slave device
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-
    //wait for MCU to finish transaction
    while(I2CMasterBusy(I2C0_BASE));
-
-   //********************Register
-   //put next piece of data into I2C FIFO
-   I2CMasterDataPut(I2C0_BASE, device_register);
-   //******************Continue
-   //send next data that was just placed into FIFO
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-   //******************Wait
-   // Wait until MCU is done transferring.
-   while(I2CMasterBusy(I2C0_BASE));
-
-   //TODO We can make this into a multiple write function!
-   ///RIGHT HERE WE COULD SEND MORE DATA CONTINUE AND WAIT!
 
    //******************Send Data
    //specify data to be written to the above mentioned device_register
