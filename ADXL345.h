@@ -25,6 +25,7 @@
 #define ADXL345_INT_ENABLE    (0x2E)
 #define ADXL345_FIFO_CTL      (0x38)
 #define ADXL345_INT_MAP       (0x2F)
+#define ADXL345_INT_SOURCE    (0x30)
 #define ADXL345_BW_RATE       (0x2C)
 #define ADXL345_REG_UID       (0x00)
 #define ADXL345_DATA_FORMAT   (0x31)
@@ -36,14 +37,15 @@
 #define DATAZ1                (0x37)	//Z-Axis Data 1
 
 //DataFormat Values
-#define ADXL345_DATAFORMAT_4G    (0x01)
+#define ADXL345_DATAFORMAT_4G    (0x01)//Interrupt invert (B5)
 
 //Power CTL Values
 #define ADXL345_POWERCTL_UNKNOWN (0x08)
 
 //INT
-#define ADXL345_INTMAP_INT1      (0x7F)
-#define ADXL345_INTEN_ENABLE     (0x08)
+#define ADXL345_INTMAP_INT1      (0x00)
+#define ADXL345_INTEN_DISABLE    (0x00)
+#define ADXL345_INTEN_ENABLE     (0xff) //Data ready (B7), Watermark (B1), Overrun (B0)
 
 //BW Rate
 #define ADXL345_BWRATE_3200      (0x0F)

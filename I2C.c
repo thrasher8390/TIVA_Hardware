@@ -39,11 +39,19 @@ void I2C_Init0(void)
    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
    // If false the data rate is set to 100kbps and if true the data rate will
    // be set to 400kbps.
-   I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), false);
+   I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), TRUE);
+}
 
-   //Thrasher - Why was this here?
-   //clear I2C FIFOs
-   //HWREG(I2C0_BASE + I2C_O_FIFOCTL) = 80008000;
+BOOLEAN I2C_WRITEVERIFY0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
+{
+	BOOLEAN writeSuccessful = FALSE;
+	I2C_Write0(device_address,device_register,device_data);
+	uint32_t read = I2C_Read0(device_address,device_register);
+	if(read == device_data)
+	{
+		writeSuccessful = TRUE;
+	}
+	return writeSuccessful;
 }
 
 uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
@@ -75,13 +83,15 @@ uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
 	return I2CMasterDataGet(I2C0_BASE);
  }
 
-void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
+void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8_t *startofread, uint32_t numBytes)
 {
-   //specify that we want to communicate to device address with an intended write to bus
+   //specify that we are writing (a register address) to the
+   //slave device
    I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
 
-   //register to be read
-   I2CMasterDataPut(I2C0_BASE, device_register);
+   //I2CMasterDataPut(I2C0_BASE, device_register);
+   //specify register to be read
+   I2CMasterDataPut(I2C0_BASE, device_register | 0x40);
 
    //send control byte and register address byte to slave device
    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
@@ -89,18 +99,37 @@ void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t devic
    //wait for MCU to finish transaction
    while(I2CMasterBusy(I2C0_BASE));
 
-   //********************Register
-   //put next piece of data into I2C FIFO
-   I2CMasterDataPut(I2C0_BASE, device_register);
-   //******************Continue
-   //send next data that was just placed into FIFO
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-   //******************Wait
-   // Wait until MCU is done transferring.
-   while(I2CMasterBusy(I2C0_BASE));
+   //specify that we are going to read from slave device
+   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
 
-   //TODO We can make this into a multiple write function!
-   ///RIGHT HERE WE COULD SEND MORE DATA CONTINUE AND WAIT!
+   //send control byte and read from the register we
+   //specified
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
+   uint32_t i;
+   for(i = 0; i < numBytes; i++)
+   {
+      //wait for MCU to finish transaction
+      while(I2CMasterBusy(I2C0_BASE));
+      //return data pulled from the specified register
+      startofread[i] = I2CMasterDataGet(I2C0_BASE);
+      I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+   }
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+}
+
+void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
+{
+   //send control byte and register address byte to slave device
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
+
+   //specify that we want to communicate to device address with an intended write to bus
+   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
+
+   //register to be read
+   I2CMasterDataPut(I2C0_BASE, device_register);
+
+   //wait for MCU to finish transaction
+   while(I2CMasterBusy(I2C0_BASE));
 
    //******************Send Data
    //specify data to be written to the above mentioned device_register

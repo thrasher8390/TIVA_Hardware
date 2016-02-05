@@ -59,7 +59,7 @@ static void initUART0()
    //
    // Initialize the UART for console I/O.
    //
-   UARTStdioConfig(0, 115200, SYSTEM_CLOCK_FREQUENCY);
+   UARTStdioConfig(0, 115200, SYSTEM_CLOCK_FREQUENCY_HZ);
 }
 
 static void initUART3()
@@ -83,7 +83,7 @@ static void initUART3()
    //
    // Use the internal 16MHz oscillator as the UART clock source.
    //
-   UARTConfigSetExpClk(UART3_BASE, SYSTEM_CLOCK_FREQUENCY, 9600,
+   UARTConfigSetExpClk(UART3_BASE, SYSTEM_CLOCK_FREQUENCY_HZ, 9600,
          (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 
    //

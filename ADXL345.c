@@ -15,9 +15,6 @@
 //		Defines
 //*****************************************************************************
 
-#define	NUMBER_OF_ADXL345_READINGS_TO_AVERAGE     (32)		/*!<Effects AVERAGE_ADXL345_READINGS*/
-#define	AVERAGE_ADXL345_READINGS(x)               ((x>>5))
-
 //*****************************************************************************
 //		Data
 //*****************************************************************************
@@ -46,24 +43,35 @@ void ADXL345_Init()
 	//Init I2C Module 0
 	I2C_Init0();
 
-	//DataFormat
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT, ADXL345_DATAFORMAT_4G);
 	//Power Control
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_UNKNOWN);
-	//Int Enable/
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_ENABLE);
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_UNKNOWN))
+	{}
+
+	//Int Disable/
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_DISABLE))
+   {}
+
 	//Int Map
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_INT_MAP,ADXL345_INTMAP_INT1);
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_MAP,ADXL345_INTMAP_INT1))
+   {}
+
+	//Int Enable/
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_ENABLE))
+   {}
+
 	//BW_rate
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100);
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_3200))
+   {}
+
 	//Fifo_control
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS);
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS))
+   {}
 
 	//Set Data Format (pg26)
 	//SELF_TEST = 0 / SPI = 0 / INT_INVERT = 0 / 0 / FULL_RES = 0 / Justify = 0 / Range = 00
 	uint8_t dataFormat = 0x00;
-	I2C_Write0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat);
-
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat))
+   {}
 	//Init Information
 	DeviceID = I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID);
 	UARTprintf("ReadValue UID: %d\n",DeviceID);
@@ -75,23 +83,27 @@ void ADXL345_Init()
  */
 void ADXL345_Read()
 {
-	//Lets just read the uid at first
-	//TODO Implement multi byte read so data does not change between reads!
-	uint8_t xHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
-	uint8_t xLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
-	InstantaneousReadings.x = ((xHigh << 8) + xLow);
+   //Lets just read the uid at first
+   //TODO Implement multi byte read so data does not change between reads!
+  // I2C_Read0(ADXL345_ADDRESS_0, DATAX1);
+  // I2C_Read0(ADXL345_ADDRESS_0, DATAX0);
 
-	uint8_t yHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAY1);
-	uint8_t yLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAY0);
-	InstantaneousReadings.y = ((yHigh << 8) + yLow);
+	uint8_t ADXLReadings[6];
+   //TODO Implement multi byte read so data does not change between reads!
+	I2C_Read0Multiiple(ADXL345_ADDRESS_0,DATAX0,ADXLReadings, 6);
+	uint8_t xHigh  = ADXLReadings[1];
+	uint8_t xLow   = ADXLReadings[0];
+   InstantaneousReadings.x = ((xHigh << 8) + xLow);
 
-	uint8_t zHigh	= I2C_Read0(ADXL345_ADDRESS_0, DATAZ1);
-	uint8_t zLow 	= I2C_Read0(ADXL345_ADDRESS_0, DATAZ0);
-	InstantaneousReadings.z = ((zHigh << 8) + zLow);
+   uint8_t yHigh  = ADXLReadings[3];
+   uint8_t yLow   = ADXLReadings[2];
+   InstantaneousReadings.y = ((yHigh << 8) + yLow);
 
-	//printADXL345Readings("Instantaneous ADXL345\n", InstantaneousReadings);
+   uint8_t zHigh  = ADXLReadings[5];
+   uint8_t zLow   = ADXLReadings[4];
+   InstantaneousReadings.z = ((zHigh << 8) + zLow);
 
-	averageReadings();
+   averageReadings();
 }
 
 //*****************************************************************************
@@ -103,28 +115,18 @@ void ADXL345_Read()
  */
 void averageReadings()
 {
-	static uint8_t numberOfReadingsTaken = 0;
-	static struct ADXL345_Data readingSum = {0,0,0};
-	//Keep summing values until we have enough
-	if(numberOfReadingsTaken <= NUMBER_OF_ADXL345_READINGS_TO_AVERAGE)
-	{
-		readingSum.x += InstantaneousReadings.x;
-		readingSum.y += InstantaneousReadings.y;
-		readingSum.z += InstantaneousReadings.z;
-		numberOfReadingsTaken++;
-	}
-	//Lets Average and reset our averaging varialbes
-	else
-	{
-		AverageReadings.x = AVERAGE_ADXL345_READINGS(readingSum.x);
-		AverageReadings.y = AVERAGE_ADXL345_READINGS(readingSum.y);
-		AverageReadings.z = AVERAGE_ADXL345_READINGS(readingSum.z);
-		numberOfReadingsTaken = 0;
-		readingSum.x = 0;
-		readingSum.y = 0;
-		readingSum.z = 0;
-		printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
-	}
+	struct ADXL345_Data readingSum = AverageReadings;
+
+   readingSum.x += InstantaneousReadings.x;
+   readingSum.y += InstantaneousReadings.y;
+   readingSum.z += InstantaneousReadings.z;
+
+   AverageReadings.x = readingSum.x >> 1;
+   AverageReadings.y = readingSum.y >> 1;
+   AverageReadings.z = readingSum.z >> 1;
+
+   printADXL345Readings("Average ADXL345\n", InstantaneousReadings);
+
 }
 
 /*!
@@ -132,7 +134,7 @@ void averageReadings()
  */
 void printADXL345Readings(const char *tag, struct ADXL345_Data data)
 {
-	if(true)
+	if(false)
 	{
 		UARTprintf(tag);
 		UARTprintf("ReadValueX: %d\n",data.x);
@@ -140,5 +142,10 @@ void printADXL345Readings(const char *tag, struct ADXL345_Data data)
 		UARTprintf("ReadValueZ: %d\n",data.z);
 		UARTprintf("\n");
 	}
+	if(true)
+	{
+		UARTprintf("%d,%d,%d\n",data.x,data.y,data.z);
+	}
+
 }
 
