@@ -43,20 +43,18 @@ void Timers_Initialize(void)
 
 	//Set up timer to operate in PWM Mode
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-	/*
+
    TimerDisable(TIMER1, TIMER_A);
    //Periodic / TAMIE
    TimerConfigure(TIMER1, TIMER_CFG_A_PERIODIC_UP);
    TimerLoadSet(TIMER1,TIMER_A,TIME1_SET(PERIOD_OF_TIMER_1_US)-1);
 
-   //TODO need to set up the match in the servo class
-   TimerMatchSet(TIMER1,TIMER_A,TIME1_SET(15000));
-
    //Enable Timer
-   TimerIntEnable(TIMER1, TIMER_TIMA_TIMEOUT | TIMER_TIMA_MATCH);
+   TimerIntEnable(TIMER1, TIMER_TIMA_TIMEOUT);
+   TimerEnable(TIMER1, TIMER_A);
    IntEnable(INT_TIMER1A);
    TimerIntClear(TIMER1,0xFFFF);
-*/
+
 }
 
 //Foreground Timer!!!!
@@ -66,7 +64,6 @@ void Timers_Timer0Interrupt(void)
    if(status & TIMER_TIMA_TIMEOUT)
    {
       TimerIntClear(TIMER0, TIMER_TIMA_TIMEOUT);
-      Sensors_Run();
    }
 }
 
@@ -77,14 +74,7 @@ void Timers_Timer1Interrupt(void)
    UINT32 status = TimerIntStatus(TIMER1,TRUE);
    if(status & TIMER_TIMA_TIMEOUT)
    {
-      SET_TESTPOINT_0();
       TimerIntClear(TIMER1, TIMER_TIMA_TIMEOUT);
-
-   }
-   if(status & TIMER_TIMA_MATCH)
-   {
-      TimerIntClear(TIMER1, TIMER_TIMA_MATCH);
-      CLEAR_TESTPOINT_0();
    }
 }
 

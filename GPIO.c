@@ -10,12 +10,14 @@
 //*****************************************************************************
 #include "GPIO.h"
 #include "LED.h"
+#include "Sensors.h"
 
 
 //*****************************************************************************
 //    Local static Functions
 //*****************************************************************************
 static void portBInitialize(void);
+static void portDInitialize(void);
 
 //*****************************************************************************
 //		Global Functions
@@ -26,17 +28,7 @@ static void portBInitialize(void);
 void GPIO_Initialize(void)
 {
    portBInitialize();
-	//PORT D
-   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-   //D-0 = UNUSED
-   //D-1 = UNUSED
-   //D-2 = UNUSED
-   //D-3 = UNUSED
-   //D-4 = UNUSED
-   //D-5 = UNUSED
-   //D-6 = TESTPOINT 0
-	GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
-	GPIOPinWrite(TESTPOINT_0_PORT, 0xFF, CLEAR);
+   portDInitialize();
 
 	//PORT F
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
@@ -77,4 +69,50 @@ static void portBInitialize(void)
    GPIOPinConfigure(GPIO_PB7_M0PWM1);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_7);
    //B-8 = UNUSED
+}
+
+static void portDInitialize(void)
+{
+   //PORT D
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+   //D-0 = UNUSED
+   //D-1 = UNUSED
+   //D-2 = UNUSED
+   //D-3 = UNUSED
+   //D-4 = UNUSED
+   //D-5 = TESTPOINT 0
+   GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
+   GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
+   //D-6 = ADXL345 INTERRUPT
+   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,SENSORS_INT_PIN); /*!< Input*/
+   GPIOPadConfigSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PIN);
+   //D-7 = UNUSED
+
+
+   //All Port D
+   GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PIN);
+   //
+   // Enable Port D at echo timer.
+   //
+   IntEnable(INT_GPIOD);
+   //
+   // Set the interrupt priorities so they are all equal.
+   //
+   IntPrioritySet(INT_GPIOD, 0x01);
+}
+
+//*****************************************************************************
+//    Interrupts
+//*****************************************************************************
+
+void IntGPIOd(void)
+{
+   UINT32 pinStatus = GPIOIntStatus(SENSORS_INT_PORT, 0xFF);/*!< Get all interrupts*/
+   if(pinStatus & SENSORS_INT_PIN)
+   {
+      GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PIN);
+      Sensors__InterruptIRQ();
+   }
 }

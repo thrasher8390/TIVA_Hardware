@@ -40,16 +40,27 @@
 #define ADXL345_DATAFORMAT_4G    (0x01)//Interrupt invert (B5)
 
 //Power CTL Values
-#define ADXL345_POWERCTL_UNKNOWN (0x08)
+#define ADXL345_POWERCTL_SLEEP   (0x04)
+#define ADXL345_POWERCTL_MEASURE (0x08)
 
-//INT
-#define ADXL345_INTMAP_INT1      (0x00)
+//INT MAP
+#define ADXL345_INTMAP_INT2      (0x00)
+
+//INT ENABLE
 #define ADXL345_INTEN_DISABLE    (0x00)
-#define ADXL345_INTEN_ENABLE     (0xff) //Data ready (B7), Watermark (B1), Overrun (B0)
+#define ADXL345_INTEN_OVERRUN    (0x01)
+#define ADXL345_INTEN_WATERMARK  (0x02)
+#define ADXL345_INTEN_FREEFALL   (0x04)
+#define ADXL345_INTEN_INACTIVITY (0x08)
+#define ADXL345_INTEN_ACTIVITY   (0x10)
+#define ADXL345_INTEN_DOUBTAP    (0x20)
+#define ADXL345_INTEN_SINGTAP    (0x40)
+#define ADXL345_INTEN_DATARDY    (0x80)
 
 //BW Rate
 #define ADXL345_BWRATE_3200      (0x0F)
 #define ADXL345_BWRATE_100       (0x0A)
+
 //FIFO Controll
 #define ADXL345_FIFOCTL_BYPASS   (0x00)
 //*****************************************************************************
@@ -66,5 +77,6 @@ struct ADXL345_Data
 //*****************************************************************************
 extern void    ADXL345_Init();
 extern void    ADXL345_Read();
+extern void    ADXL345__InterruptIRQ(void);
 
 #endif /* ADXL345_H_ */

@@ -43,38 +43,43 @@ void ADXL345_Init()
 	//Init I2C Module 0
 	I2C_Init0();
 
-	//Power Control
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_UNKNOWN))
-	{}
-
-	//Int Disable/
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_DISABLE))
+   //BW_rate
+   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100))
    {}
 
-	//Int Map
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_MAP,ADXL345_INTMAP_INT1))
+	//Data Format (pg26)
+	//Inverter is Active High
+	//10 bit resolution
+	//right-justified
+	//+/- 2g Range
+   //SELF_TEST = 0 / SPI = 0 / INT_INVERT = 0 / 0 / FULL_RES = 0 / Justify = 0 / Range = 00
+   uint8_t dataFormat = 0b00000000;
+   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat))
    {}
 
-	//Int Enable/
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_ENABLE))
+   //Fifo_control
+   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS))
    {}
 
-	//BW_rate
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_3200))
+	//Int Map (Any bit that is set will trigger Int 2 pin on the ADXL
+	//Lets set up the DATA for Pin 1 and any errors on Pin 2.
+	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_MAP, ADXL345_INTEN_OVERRUN | ADXL345_INTEN_WATERMARK))
    {}
 
-	//Fifo_control
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS))
+   //Int Enable Reg
+   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_OVERRUN | ADXL345_INTEN_WATERMARK | ADXL345_INTEN_DATARDY))
    {}
 
-	//Set Data Format (pg26)
-	//SELF_TEST = 0 / SPI = 0 / INT_INVERT = 0 / 0 / FULL_RES = 0 / Justify = 0 / Range = 00
-	uint8_t dataFormat = 0x00;
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat))
+   //Start Measureing
+   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_MEASURE))
    {}
+
 	//Init Information
 	DeviceID = I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID);
 	UARTprintf("ReadValue UID: %d\n",DeviceID);
+
+	//This is needed to clear out the interrupt.
+	ADXL345_Read();
 }
 
 /*!
@@ -149,3 +154,11 @@ void printADXL345Readings(const char *tag, struct ADXL345_Data data)
 
 }
 
+
+//*****************************************************************************
+//    Interrupts
+//*****************************************************************************
+void ADXL345__InterruptIRQ(void)
+{
+   ADXL345_Read();
+}
