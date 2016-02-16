@@ -11,12 +11,17 @@
 #include "I2C.h"
 
 //*****************************************************************************
+//    Data
+//*****************************************************************************
+static I2CMultReadStruct I2CMultRead = {.MultiReadActive = FALSE};
+
+//*****************************************************************************
 //		Global Functions
 //*****************************************************************************
+
 /*!
  * \brief Init I2C
  */
-
 void I2C_Init0(void)
 {
    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
@@ -24,16 +29,13 @@ void I2C_Init0(void)
    //reset I2C module
    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C0);
 
-   //enable GPIO peripheral that contains I2C
-   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+   //Enable interrupts to be used by Multi Read
+   I2CMasterIntEnable(I2C0_BASE);
 
-   // Configure the pin muxing for I2C0 functions on port B2 and B3.
-   GPIOPinConfigure(GPIO_PB2_I2C0SCL);
-   GPIOPinConfigure(GPIO_PB3_I2C0SDA);
-
-   // Select the I2C function for these pins.
-   GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
-   GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
+   //enable interrupt so that we can finish the mult read
+   I2CMasterIntEnableEx(I2C0_BASE,I2C_INT_MASK);
+   IntEnable(INT_I2C0);
+   IntPrioritySet(INT_I2C0, I2C_INTERRUPT_PRIORITY);
 
    // Enable and initialize the I2C0 master module.  Use the system clock for
    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
@@ -54,7 +56,32 @@ BOOLEAN I2C_WRITEVERIFY0(uint16_t device_address, uint16_t device_register, uint
 	return writeSuccessful;
 }
 
-uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
+void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
+{
+   //send control byte and register address byte to slave device
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
+
+   //specify that we want to communicate to device address with an intended write to bus
+   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
+
+   //register to be read
+   I2CMasterDataPut(I2C0_BASE, device_register);
+
+   //wait for MCU to finish transaction
+   while(I2CMasterBusy(I2C0_BASE));
+
+   //******************Send Data
+   //specify data to be written to the above mentioned device_register
+   I2CMasterDataPut(I2C0_BASE, device_data);
+   //******************Finish
+   //wait while checking for MCU to complete the transaction
+   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+   //******************Wait
+   //wait for MCU & device to complete transaction
+   while(I2CMasterBusy(I2C0_BASE));
+}
+
+UINT32 I2C_Read0(uint16_t device_address, uint16_t device_register)
 {
 	//specify that we are writing (a register address) to the
 	//slave device
@@ -83,61 +110,94 @@ uint32_t I2C_Read0(uint16_t device_address, uint16_t device_register)
 	return I2CMasterDataGet(I2C0_BASE);
  }
 
-void I2C_Read0Multiiple(uint16_t device_address, uint16_t device_register, uint8_t *startofread, uint32_t numBytes)
+/*
+ * \BRIEF THIS IS INTERRUPT DRIVEN
+ *  We need to pass a callback function for when everything is complete.
+ */
+void I2C_Read0Multiiple(UINT16 device_address, UINT16 device_register, UINT8 *startofread, UINT32 numBytes, int (*getNextValue)(void))
 {
-   //specify that we are writing (a register address) to the
-   //slave device
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
+   I2CMultRead.MultiReadActive = TRUE;
+   I2CMultRead.State = I2C_MULTREAD__START;
+   I2CMultRead.Address = device_address;
+   I2CMultRead.Register = device_register;
+   I2CMultRead.DataLocation = startofread;
+   I2CMultRead.DataLocationLength = numBytes;
+   I2CMultRead.CallbackFunction = getNextValue;
+   //Start the process
+   I2C_Interrupt0();
+}
 
-   //I2CMasterDataPut(I2C0_BASE, device_register);
-   //specify register to be read
-   I2CMasterDataPut(I2C0_BASE, device_register | 0x40);
+/*
+ * \brief Interrupt driven I2C Module that is for Multi Reads
+ */
+void I2C_Interrupt0(void)
+{
+   static UINT32 numReads = 0;
+   UINT32 interruptStatus = I2CMasterIntStatusEx(I2C0_BASE,false);
+   I2CMasterIntClear(I2C0_BASE);
+   I2CMasterIntClearEx(I2C0_BASE,I2C_INT_MASK);
 
-   //send control byte and register address byte to slave device
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-
-   //wait for MCU to finish transaction
-   while(I2CMasterBusy(I2C0_BASE));
-
-   //specify that we are going to read from slave device
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, true);
-
-   //send control byte and read from the register we
-   //specified
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
-   uint32_t i;
-   for(i = 0; i < numBytes; i++)
+   //Lets only run our Interrupt driven I2C read if it is active.
+   if(I2CMultRead.MultiReadActive)
    {
-      //wait for MCU to finish transaction
-      while(I2CMasterBusy(I2C0_BASE));
-      //return data pulled from the specified register
-      startofread[i] = I2CMasterDataGet(I2C0_BASE);
-      I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+      //We also need to check for I2C_MULTREAD__START because I2C_Read0Multiiple calls this function
+      //TODO se if there is a way that we can trigger the interrupt (DT 2/14/2016 Looked quick and couldn't find anything)
+      if(   (interruptStatus & I2C_MASTER_INT_DATA) ||
+            (I2CMultRead.State == I2C_MULTREAD__START)
+            )
+      {
+         switch(I2CMultRead.State)
+            {
+               case I2C_MULTREAD__START:
+                  {
+                     //specify that we are writing (a register address) to the
+                     //slave device
+                     I2CMasterSlaveAddrSet(I2C0_BASE, I2CMultRead.Address, false);
+
+                     //I2CMasterDataPut(I2C0_BASE, device_register);
+                     //specify register to be read
+                     I2CMasterDataPut(I2C0_BASE, I2CMultRead.Register | 0x40);
+
+                     //send control byte and register address byte to slave device
+                     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);//I2C_MASTER_CMD_SINGLE_SEND
+
+                     I2CMultRead.State = I2C_MULTREAD__SEND_REGISTER;
+                  }
+                  break;
+               case I2C_MULTREAD__SEND_REGISTER:
+                  {
+                     //specify that we are going to read from slave device
+                    I2CMasterSlaveAddrSet(I2C0_BASE, I2CMultRead.Address, true);
+
+                    //send control byte and read from the register we
+                    //specified
+                    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
+                    numReads = 0;
+                  }
+                  I2CMultRead.State = I2C_MULTREAD__CONTINUE_READ;
+                  break;
+               case I2C_MULTREAD__CONTINUE_READ:
+                  {
+                     I2CMultRead.DataLocation[numReads++] = I2CMasterDataGet(I2C0_BASE);
+                     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+                  }
+                  //END OF READING
+                  if(numReads == I2CMultRead.DataLocationLength)
+                  {
+                     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+                     I2CMultRead.MultiReadActive = FALSE;
+                     I2CMultRead.State = I2C_MULTREAD__START;
+                     I2CMultRead.CallbackFunction();
+                  }
+                  break;
+               case I2C_MULTREAD__END_READ:
+               default:
+                  {
+                     I2CMultRead.State = I2C_MULTREAD__START;
+                  }
+                  break;
+            }
+      }
    }
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
 }
 
-void I2C_Write0(uint16_t device_address, uint16_t device_register, uint8_t device_data)
-{
-   //send control byte and register address byte to slave device
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-
-   //specify that we want to communicate to device address with an intended write to bus
-   I2CMasterSlaveAddrSet(I2C0_BASE, device_address, false);
-
-   //register to be read
-   I2CMasterDataPut(I2C0_BASE, device_register);
-
-   //wait for MCU to finish transaction
-   while(I2CMasterBusy(I2C0_BASE));
-
-   //******************Send Data
-   //specify data to be written to the above mentioned device_register
-   I2CMasterDataPut(I2C0_BASE, device_data);
-   //******************Finish
-   //wait while checking for MCU to complete the transaction
-   I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
-   //******************Wait
-   //wait for MCU & device to complete transaction
-   while(I2CMasterBusy(I2C0_BASE));
-}

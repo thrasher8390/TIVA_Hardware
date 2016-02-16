@@ -11,13 +11,15 @@
 #include "Timers.h"
 #include "Sensors.h"
 #include "LED.h"
+#include "Scheduler.h"        /*!<Run*/
 
-#define PERIOD_OF_TIMER_0_US (1600)
-#define TIME0_INTERRUPT_PERIOD (PERIOD_OF_TIMER_0_US*SYSTEM_CLOCK_FREQUENCY_MHZ) //250us * CLOCK OF TIMER 0(16mhz) = 4000
+#define PERIOD_OF_TIMER_0_US  (50)
+#define TIME0_PRESCALE        (8)
+#define TIME0_INTERRUPT_PERIOD (PERIOD_OF_TIMER_0_US*PLL_FREQUENCY_MHZ/TIME0_PRESCALE) //
 #define MS_IN_FORGROUND_CLOCK0(x) ((((UINT32)x)*1000)/PERIOD_OF_TIMER_0_US)
 
 #define PERIOD_OF_TIMER_1_US (20000)
-#define TIME1_SET(x) (((UINT32)(x))*SYSTEM_CLOCK_FREQUENCY_MHZ) //250us * CLOCK OF TIMER 0(16mhz) = 4000
+#define TIME1_SET(x) (((UINT32)(x))*SYSTEM_CLOCK_FREQUENCY_MHZ) //
 #define MS_IN_FORGROUND_CLOCK1(x) ((((UINT32)x)*1000)/PERIOD_OF_TIMER_1_US)
 
 
@@ -32,12 +34,13 @@ void Timers_Initialize(void)
 
    //Periodic / TAMIE
    TimerConfigure(TIMER0, TIMER_CFG_A_PERIODIC_UP);
+   TimerPrescaleSet(TIMER0,TIMER_A,TIME0_PRESCALE);
    TimerLoadSet(TIMER0,TIMER_A,TIME0_INTERRUPT_PERIOD-1);
    //Enable Timer
    TimerIntEnable(TIMER0, TIMER_TIMA_TIMEOUT);
    TimerEnable(TIMER0, TIMER_A);
    IntEnable(INT_TIMER0A);
-
+   IntPrioritySet(INT_TIMER0A, TIMER_INTERRUPT_PRIORITY__FOREGROUND);
 	TimerIntClear(TIMER0,0xFFFF);
 
 
@@ -64,6 +67,7 @@ void Timers_Timer0Interrupt(void)
    if(status & TIMER_TIMA_TIMEOUT)
    {
       TimerIntClear(TIMER0, TIMER_TIMA_TIMEOUT);
+      Scheduler__Run();
    }
 }
 

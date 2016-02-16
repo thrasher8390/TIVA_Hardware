@@ -16,6 +16,7 @@
 //*****************************************************************************
 //    Local static Functions
 //*****************************************************************************
+static void portAInitialize(void);
 static void portBInitialize(void);
 static void portDInitialize(void);
 
@@ -27,6 +28,7 @@ static void portDInitialize(void);
  */
 void GPIO_Initialize(void)
 {
+   portAInitialize();
    portBInitialize();
    portDInitialize();
 
@@ -48,14 +50,40 @@ void GPIO_Initialize(void)
 //    Local static Functions
 //*****************************************************************************
 
+
+static void portAInitialize(void)
+{
+   //PORT A
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+   //A-0 = UART for PRINTF
+   GPIOPinConfigure(GPIO_PA0_U0RX);
+
+   GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0);
+   //A-1 = UART FOR PRINTF
+   GPIOPinConfigure(GPIO_PA1_U0TX);
+   GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_1);
+   //A-2 = TESTPOINT 1
+   GPIOPinTypeGPIOOutput(TESTPOINT_1_PORT, TESTPOINT_1_PIN);
+   GPIOPinWrite(TESTPOINT_1_PORT, TESTPOINT_1_PIN, CLEAR);
+   //A-3 = UNUSED
+   //A-4 = UNUSED
+   //A-5 = UNUSED
+   //A-6 = UNUSED
+   //A-7 = UNUSED
+}
+
 static void portBInitialize(void)
 {
    //PORT B
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
    //B-0 = UNUSED
    //B-1 = UNUSED
-   //B-2 = UNUSED
-   //B-3 = UNUSED
+   //B-2 = I2C Clock
+   GPIOPinConfigure(GPIO_PB2_I2C0SCL);
+   GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
+   //B-3 = I2C Data
+   GPIOPinConfigure(GPIO_PB3_I2C0SDA);
+   GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
    //B-4 = PWM for Motor
    GPIOPinConfigure(GPIO_PB4_M0PWM2);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_4);
@@ -80,27 +108,22 @@ static void portDInitialize(void)
    //D-2 = UNUSED
    //D-3 = UNUSED
    //D-4 = UNUSED
-   //D-5 = TESTPOINT 0
-   GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
-   GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
+   //D-5 = UNUSED
    //D-6 = ADXL345 INTERRUPT
    GPIOPinTypeGPIOInput(SENSORS_INT_PORT,SENSORS_INT_PIN); /*!< Input*/
    GPIOPadConfigSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
    GPIOIntTypeSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
    GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PIN);
-   //D-7 = UNUSED
+   //D-7 = TESTPOINT 0
+   GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
+   GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
 
 
    //All Port D
    GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PIN);
-   //
-   // Enable Port D at echo timer.
-   //
+
    IntEnable(INT_GPIOD);
-   //
-   // Set the interrupt priorities so they are all equal.
-   //
-   IntPrioritySet(INT_GPIOD, 0x01);
+   IntPrioritySet(INT_GPIOD, GPIO_INTERRUPT_PRIORITY__SENSOR_PIN);
 }
 
 //*****************************************************************************

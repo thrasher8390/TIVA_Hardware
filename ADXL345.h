@@ -59,6 +59,8 @@
 
 //BW Rate
 #define ADXL345_BWRATE_3200      (0x0F)
+#define ADXL345_BWRATE_1600      (0x0E)
+#define ADXL345_BWRATE_800       (0x0D)
 #define ADXL345_BWRATE_100       (0x0A)
 
 //FIFO Controll
@@ -75,8 +77,9 @@ struct ADXL345_Data
 //*****************************************************************************
 //		Global Functions
 //*****************************************************************************
-extern void    ADXL345_Init();
-extern void    ADXL345_Read();
+extern void    ADXL345_Init(void);
+extern void    ADXL345_Read(void);
 extern void    ADXL345__InterruptIRQ(void);
+extern void    ADXL345__ProcessReadings(void);
 
 #endif /* ADXL345_H_ */
