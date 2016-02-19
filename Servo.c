@@ -10,6 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "Servo.h"
 #include "pwm.h"
+#include "Scheduler.h"
 
 /* Private datatypes ---------------------------------------------------------*/
 typedef struct
@@ -64,9 +65,23 @@ void ServoModule_Init(void)
    //send servos to their initial positions
    for(i = 0; i < NUM_SERVO_MOTORS; i++)
    {
+      //Set to High End
+      ServoMotors.Motors[i].powerUS = 800;
       //initialize the appropriate outputs
       setServoOutput(&(ServoMotors.Motors[i]));
    }
+   Scheduler__SetResetCountValue(SCHEDULER__SERVO,SCHEDULER_SECONDS(2));
+   while(Scheduler__GetTimerState(SCHEDULER__SERVO) == SCHEDULER_STATE__RUNNING);
+
+   //send servos to their initial positions
+   for(i = 0; i < NUM_SERVO_MOTORS; i++)
+   {
+      //Set to Low End
+      ServoMotors.Motors[i].powerUS = 0;
+      //initialize the appropriate outputs
+      setServoOutput(&(ServoMotors.Motors[i]));
+   }
+
 }
 
 /**

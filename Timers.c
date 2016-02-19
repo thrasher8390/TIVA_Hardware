@@ -13,12 +13,12 @@
 #include "LED.h"
 #include "Scheduler.h"        /*!<Run*/
 
-#define PERIOD_OF_TIMER_0_US  (50)
+#define PERIOD_OF_TIMER_0_US  (1000)//Need to adjust SCHEDULER_SECONDS(x) if changed
 #define TIME0_PRESCALE        (8)
 #define TIME0_INTERRUPT_PERIOD (PERIOD_OF_TIMER_0_US*PLL_FREQUENCY_MHZ/TIME0_PRESCALE) //
 #define MS_IN_FORGROUND_CLOCK0(x) ((((UINT32)x)*1000)/PERIOD_OF_TIMER_0_US)
 
-#define PERIOD_OF_TIMER_1_US (20000)
+#define PERIOD_OF_TIMER_1_US (1000)
 #define TIME1_SET(x) (((UINT32)(x))*SYSTEM_CLOCK_FREQUENCY_MHZ) //
 #define MS_IN_FORGROUND_CLOCK1(x) ((((UINT32)x)*1000)/PERIOD_OF_TIMER_1_US)
 
@@ -67,7 +67,9 @@ void Timers_Timer0Interrupt(void)
    if(status & TIMER_TIMA_TIMEOUT)
    {
       TimerIntClear(TIMER0, TIMER_TIMA_TIMEOUT);
+      SET_TESTPOINT_0();
       Scheduler__Run();
+      CLEAR_TESTPOINT_0();
    }
 }
 
@@ -79,6 +81,8 @@ void Timers_Timer1Interrupt(void)
    if(status & TIMER_TIMA_TIMEOUT)
    {
       TimerIntClear(TIMER1, TIMER_TIMA_TIMEOUT);
+      ADXL345__ProcessReadings();
+
    }
 }
 

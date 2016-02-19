@@ -101,10 +101,8 @@ void ADXL345__ProcessReadings()
    //Process the data!
    if(DataIsReady == TRUE)
    {
-      SET_TESTPOINT_0();
       DataIsReady = FALSE;
       printADXL345Readings("Average ADXL345\n", ValidatedADXLReadings);
-      CLEAR_TESTPOINT_0();
    }
 
 }
