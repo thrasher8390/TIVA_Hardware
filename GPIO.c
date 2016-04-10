@@ -110,17 +110,17 @@ static void portDInitialize(void)
    //D-4 = UNUSED
    //D-5 = UNUSED
    //D-6 = ADXL345 INTERRUPT
-   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,SENSORS_INT_PIN); /*!< Input*/
-   GPIOPadConfigSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
-   GPIOIntTypeSet(SENSORS_INT_PORT, SENSORS_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
-   GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PIN);
+   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,SENSORS_INT_PINS); /*!< Input*/
+   GPIOPadConfigSet(SENSORS_INT_PORT, SENSORS_INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(SENSORS_INT_PORT, SENSORS_INT_PINS, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PINS);
    //D-7 = TESTPOINT 0
    GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
    GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
 
 
    //All Port D
-   GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PIN);
+   GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PINS);
 
    IntEnable(INT_GPIOD);
    IntPrioritySet(INT_GPIOD, GPIO_INTERRUPT_PRIORITY__SENSOR_PIN);
@@ -133,9 +133,9 @@ static void portDInitialize(void)
 void IntGPIOd(void)
 {
    UINT32 pinStatus = GPIOIntStatus(SENSORS_INT_PORT, 0xFF);/*!< Get all interrupts*/
-   if(pinStatus & SENSORS_INT_PIN)
+   if(pinStatus & SENSORS_INT_PINS)
    {
-      GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PIN);
-      Sensors__InterruptIRQ();
+      GPIOIntClear(SENSORS_INT_PORT,pinStatus & SENSORS_INT_PINS);
+      Sensors__InterruptIRQ(pinStatus & SENSORS_INT_PINS);
    }
 }

@@ -26,9 +26,6 @@ typedef struct
    SERVO_MOTOR Motors[4];
 } SERVO_MOTORS;
 
-/* Private defines -----------------------------------------------------------*/
-#define MAX_POWER_US (1000)
-
 //Defines for servo timing requirements
 #define SERVO_UPDATE_TIME_IN_MS           (27)
 
