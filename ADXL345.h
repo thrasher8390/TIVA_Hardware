@@ -61,6 +61,7 @@
 #define ADXL345_BWRATE_3200      (0x0F)
 #define ADXL345_BWRATE_1600      (0x0E)
 #define ADXL345_BWRATE_800       (0x0D)
+#define ADXL345_BWRATE_400       (0x0C)
 #define ADXL345_BWRATE_100       (0x0A)
 
 //FIFO Controll

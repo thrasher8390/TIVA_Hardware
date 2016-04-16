@@ -39,12 +39,8 @@ static void validateReadings(void);
  */
 void ADXL345_Init()
 {
-	//Lets initialize the I2C module that will be used for the ADXL345
-	//Init I2C Module 0
-	I2C_Init0();
-
    //BW_rate
-   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_800))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_400))
    {}
 
 	//Data Format (pg26)
@@ -54,25 +50,25 @@ void ADXL345_Init()
 	//+/- 2g Range
    //SELF_TEST = 0 / SPI = 0 / INT_INVERT = 0 / 0 / FULL_RES = 0 / Justify = 0 / Range = 00
    uint8_t dataFormat = 0b00000000;
-   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_DATA_FORMAT,dataFormat))
    {}
 
    //Fifo_control
-   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_FIFO_CTL, ADXL345_FIFOCTL_BYPASS))
    {}
 
 	//Int Map (Any bit that is set will trigger Int 2 pin on the ADXL
 	//Lets set up the DATA for Pin 2
    //TODO INT 1 was broken during development
-	while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_MAP, ADXL345_INTEN_DATARDY))
+	while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_INT_MAP, ADXL345_INTEN_DATARDY))
    {}
 
    //Int Enable Reg
-   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_OVERRUN | ADXL345_INTEN_WATERMARK | ADXL345_INTEN_DATARDY))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_INT_ENABLE,ADXL345_INTEN_OVERRUN | ADXL345_INTEN_WATERMARK | ADXL345_INTEN_DATARDY))
    {}
 
    //Start Measureing
-   while(!I2C_WRITEVERIFY0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_MEASURE))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_POWER_CTL,ADXL345_POWERCTL_MEASURE))
    {}
 
 	//Init Information

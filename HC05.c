@@ -54,11 +54,11 @@ void addCommandToFifo(BLUETOOTH_CMD addedCMD)
    //Don't add command if you are going to overwrite the next command
    if(((CommandFIFOWriteIndex+1) & COMMAND_FIFO_BIT_MASK) != CommandFIFOReadIndex)
    {
-   CommandFIFO[CommandFIFOWriteIndex++] = addedCMD;
+      CommandFIFO[CommandFIFOWriteIndex++] = addedCMD;
    }
    else
    {
-    //ERROR Our Command Fifo is about to overwrite our next command
+      //ERROR Our Command Fifo is about to overwrite our next command
    }
    //wrap the index back to COMMAND_FIFO_START_INDEX
    CommandFIFOWriteIndex &= COMMAND_FIFO_BIT_MASK;
@@ -69,7 +69,7 @@ void addCommandToFifo(BLUETOOTH_CMD addedCMD)
 */
 BLUETOOTH_CMD HC05__GetCommand()
 {
-   BLUETOOTH_CMD CMD = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+   BLUETOOTH_CMD CMD;
    if(CommandFIFOReadIndex != CommandFIFOWriteIndex)
    {
     CMD = CommandFIFO[CommandFIFOReadIndex++];
@@ -117,17 +117,22 @@ void HC05__RxInterrupt(void)
                RxCommand.CMD = readData;
                break;
             }
+            case CMD_SUB:
+            {
+               RxCommand.CMD_SUB = readData;
+               break;
+            }
             case END_OF_HEADER_INDEX:
             {
                RxCommand.LENGTH = readData;
                break;
             }
             case BEGINNING_OF_DATA_INDEX:
-            case 3:
             case 4:
             case 5:
             case 6:
             case 7:
+            case 8:
             {
                RxCommand.DATA[RxIndex - BEGINNING_OF_DATA_INDEX] = readData;
                break;

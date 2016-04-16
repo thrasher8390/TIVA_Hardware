@@ -17,6 +17,7 @@
 typedef struct
 {
   uint8_t CMD;
+  uint8_t CMD_SUB;
   uint8_t LENGTH;
   uint8_t DATA[6];
 }BLUETOOTH_CMD;
@@ -24,9 +25,10 @@ typedef struct
 typedef enum
 {
    CMD = 0,
-   LENGTH = 1,
+   CMD_SUB = 1,
+   LENGTH = 2,
    END_OF_HEADER_INDEX = LENGTH,
-   BEGINNING_OF_DATA_INDEX = 2
+   BEGINNING_OF_DATA_INDEX = 3
 }cmdIndexes;
 
 //Functions
