@@ -19,6 +19,7 @@
 static void portAInitialize(void);
 static void portBInitialize(void);
 static void portDInitialize(void);
+static void portFInitialize(void);
 
 //*****************************************************************************
 //		Global Functions
@@ -31,19 +32,8 @@ void GPIO_Initialize(void)
    portAInitialize();
    portBInitialize();
    portDInitialize();
+   portFInitialize();
 
-	//PORT F
-   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-   //F-0 = UNUSED
-   //F-1 = RED LED
-   GPIOPinTypeGPIOOutput(LED_PORT, LED_RED_PIN);
-   //F-2 = BLUE LED
-   GPIOPinTypeGPIOOutput(LED_PORT, LED_BLUE_PIN);
-   //F-3 = GREEN LED
-   GPIOPinTypeGPIOOutput(LED_PORT, LED_GREEN_PIN);
-   //F-4 = UNUSED
-   //F-5 = UNUSED
-   //F-6 = UNUSED
 }
 
 //*****************************************************************************
@@ -57,11 +47,12 @@ static void portAInitialize(void)
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
    //A-0 = UART for PRINTF
    GPIOPinConfigure(GPIO_PA0_U0RX);
-
    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0);
+
    //A-1 = UART FOR PRINTF
    GPIOPinConfigure(GPIO_PA1_U0TX);
    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_1);
+
    //A-2 = TESTPOINT 1
    GPIOPinTypeGPIOOutput(TESTPOINT_1_PORT, TESTPOINT_1_PIN);
    GPIOPinWrite(TESTPOINT_1_PORT, TESTPOINT_1_PIN, CLEAR);
@@ -81,21 +72,27 @@ static void portBInitialize(void)
    //B-2 = I2C Clock
    GPIOPinConfigure(GPIO_PB2_I2C0SCL);
    GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
+
    //B-3 = I2C Data
    GPIOPinConfigure(GPIO_PB3_I2C0SDA);
    GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
+
    //B-4 = PWM for Motor
    GPIOPinConfigure(GPIO_PB4_M0PWM2);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_4);
+
    //B-5 = PWM for Motor
    GPIOPinConfigure(GPIO_PB5_M0PWM3);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_5);
+
    //B-6 = PWM for Motor
    GPIOPinConfigure(GPIO_PB6_M0PWM0);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
+
    //B-7 = PWM for Motor
    GPIOPinConfigure(GPIO_PB7_M0PWM1);
    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_7);
+
    //B-8 = UNUSED
 }
 
@@ -103,29 +100,48 @@ static void portDInitialize(void)
 {
    //PORT D
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-   //D-0 = UNUSED
+   //D-0 = Gyro Data Ready
+   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,GYRO_INT_PIN); /*!< Input*/
+   GPIOPadConfigSet(SENSORS_INT_PORT, GYRO_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(SENSORS_INT_PORT, GYRO_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(SENSORS_INT_PORT,GYRO_INT_PIN);
+
    //D-1 = UNUSED
    //D-2 = UNUSED
-   //D-3 = UNUSED
+   //D-3 = Testpoint
+   GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
+   GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
    //D-4 = UNUSED
    //D-5 = UNUSED
    //D-6 = ADXL345 INTERRUPT
-   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,SENSORS_INT_PINS); /*!< Input*/
-   GPIOPadConfigSet(SENSORS_INT_PORT, SENSORS_INT_PINS, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
-   GPIOIntTypeSet(SENSORS_INT_PORT, SENSORS_INT_PINS, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
-   GPIOIntClear(SENSORS_INT_PORT,SENSORS_INT_PINS);
-   //D-7 = TESTPOINT 0
-   GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
-   GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
-
+   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,ADXL_INT_PIN); /*!< Input*/
+   GPIOPadConfigSet(SENSORS_INT_PORT, ADXL_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(SENSORS_INT_PORT, ADXL_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(SENSORS_INT_PORT,ADXL_INT_PIN);
+   //D-7 = UNUSED
 
    //All Port D
    GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PINS);
-
    IntEnable(INT_GPIOD);
    IntPrioritySet(INT_GPIOD, GPIO_INTERRUPT_PRIORITY__SENSOR_PIN);
 }
 
+
+void portFInitialize(void)
+{
+   //PORT F
+   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+   //F-0 = UNUSED
+   //F-1 = RED LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_RED_PIN);
+   //F-2 = BLUE LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_BLUE_PIN);
+   //F-3 = GREEN LED
+   GPIOPinTypeGPIOOutput(LED_PORT, LED_GREEN_PIN);
+   //F-4 = UNUSED
+   //F-5 = UNUSED
+   //F-6 = UNUSED
+}
 //*****************************************************************************
 //    Interrupts
 //*****************************************************************************

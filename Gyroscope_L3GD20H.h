@@ -59,6 +59,9 @@
 #define CTRL1_MAXBW (0x30)
 #define CTRL1_MINDR (0x00)
 #define CTRL1_MINBW (0x00)
+#define CTRL1_ODRHZ_100_12  (0x00)
+#define CTRL1_ODRHZ_400_110 (0xB0)
+#define CTRL1_ODRHZ_800_30  (0xC0)
 #define CTRL1_ENABLEXYZ (0x07)
 #define CTRL1_NORMAL_MODE (0x08)
 //CTRL2
@@ -67,6 +70,7 @@
 #define CTRL2_HPFMODE_NORMAL 			(0x20) //10 B5/B4 HPM1/HPM0
 #define CTRL2_HPFMODE_AUTORESETONINT 	(0x30) //11 B5/B4 HPM1/HPM0
 //CRTRL3
+#define CTRL3_INT2_DRDY_ENABLE     (0x08) //1 B3
 //CTRL4
 #define CTRL4_FULLSCALE_245 (0x00) //00 B5/B4 FS1/FS0
 #define CTRL4_FULLSCALE_500 (0x10) //01 B5/B4 FS1/FS0
@@ -75,9 +79,20 @@
 #define CTRL5_HPEN (0x10)
 
 //*****************************************************************************
+//    Global Structs
+//*****************************************************************************
+struct Gyro_Data
+{
+   int32_t x;
+   int32_t y;
+   int32_t z;
+};
+
+//*****************************************************************************
 //		Global Functions
 //*****************************************************************************
-extern void Gyro_Init();
-extern uint8_t 	Gyro_Read();
+extern void       Gyro_Init(void);
+extern void 	   Gyro_Read(void);
+extern void       Gyro__InterruptIRQ(void);
 
 #endif /* GYROSCOPE_L3GD20H_H_ */

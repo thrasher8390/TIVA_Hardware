@@ -12,6 +12,7 @@
 #include "Sensors.h"
 #include "LED.h"
 #include "Scheduler.h"        /*!<Run*/
+#include "I2C.h"
 
 #define PERIOD_OF_TIMER_0_US  (1000)//Need to adjust SCHEDULER_SECONDS(x) if changed
 #define TIME0_PRESCALE        (8)
@@ -69,6 +70,8 @@ void Timers_Timer0Interrupt(void)
       TimerIntClear(TIMER0, TIMER_TIMA_TIMEOUT);
       SET_TESTPOINT_0();
       Scheduler__Run();
+      I2C__MultReadStart();
+      Sensors_Run();
       CLEAR_TESTPOINT_0();
    }
 }
@@ -82,6 +85,7 @@ void Timers_Timer1Interrupt(void)
    {
       TimerIntClear(TIMER1, TIMER_TIMA_TIMEOUT);
       ADXL345__ProcessReadings();
+      Gyro__ProcessReadings();
 
    }
 }

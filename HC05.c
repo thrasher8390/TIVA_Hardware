@@ -70,6 +70,7 @@ void addCommandToFifo(BLUETOOTH_CMD addedCMD)
 BLUETOOTH_CMD HC05__GetCommand()
 {
    BLUETOOTH_CMD CMD;
+   CMD.CMD = INVALID_CMD;
    if(CommandFIFOReadIndex != CommandFIFOWriteIndex)
    {
     CMD = CommandFIFO[CommandFIFOReadIndex++];

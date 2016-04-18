@@ -31,6 +31,8 @@ typedef enum
    BEGINNING_OF_DATA_INDEX = 3
 }cmdIndexes;
 
+#define INVALID_CMD (0xFF)
+
 //Functions
 extern void HC05_Initialize(void);
 extern void HC05__RxInterrupt(void);

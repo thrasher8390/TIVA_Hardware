@@ -18,9 +18,7 @@
 //*****************************************************************************
 //		Data
 //*****************************************************************************
-
-struct ADXL345_Data AverageReadings;         /*!< This is average every 'NUMBER_OF_ADXL345_READINGS_TO_AVERAGE' Foreground Cycles = 32 * UNDEFINED_FOREGROUND_CYCLE_TIME */
-static uint8_t RawADXLReadings[6];
+static UINT8 RawADXLReadings[6];
 struct ADXL345_Data ValidatedADXLReadings; 	/*!< These values are read every Foreground cycle (UNDEFINED_FOREGROUND_CYCLE_TIME) */
 uint8_t DeviceID;
 static BOOLEAN DataIsReady = FALSE;
@@ -40,7 +38,7 @@ static void validateReadings(void);
 void ADXL345_Init()
 {
    //BW_rate
-   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_400))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100))
    {}
 
 	//Data Format (pg26)
@@ -75,8 +73,7 @@ void ADXL345_Init()
 	DeviceID = I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID);
 	//UARTprintf("ReadValue UID: %d\n",DeviceID);
 
-	//This is needed to clear out the interrupt.
-	ADXL345_Read();
+
 }
 
 /*!
@@ -85,7 +82,7 @@ void ADXL345_Init()
  */
 void ADXL345_Read()
 {
-	I2C_Read0Multiiple(ADXL345_ADDRESS_0,DATAX0,RawADXLReadings, 6,validateReadings);
+	I2C_Read0Multiiple(ADXL345_ADDRESS_0, DATAX0, RawADXLReadings, 6, validateReadings);
 }
 
 /*!
@@ -180,7 +177,6 @@ void printADXL345Readings(const char *tag, struct ADXL345_Data data)
       }
       UARTprintf("\n");
 	}
-
 }
 
 
