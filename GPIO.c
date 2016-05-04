@@ -100,28 +100,27 @@ static void portDInitialize(void)
 {
    //PORT D
    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-   //D-0 = Gyro Data Ready
-   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,GYRO_INT_PIN); /*!< Input*/
-   GPIOPadConfigSet(SENSORS_INT_PORT, GYRO_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
-   GPIOIntTypeSet(SENSORS_INT_PORT, GYRO_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
-   GPIOIntClear(SENSORS_INT_PORT,GYRO_INT_PIN);
-
+   //D-0 = UNUSED
    //D-1 = UNUSED
-   //D-2 = UNUSED
+   //D-2 = Gyro Data Ready
+   GPIOPinTypeGPIOInput(GYRO_INT_PORT,GYRO_INT_PIN); /*!< Input*/
+   GPIOPadConfigSet(GYRO_INT_PORT, GYRO_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(GYRO_INT_PORT, GYRO_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(GYRO_INT_PORT,GYRO_INT_PIN);
    //D-3 = Testpoint
    GPIOPinTypeGPIOOutput(TESTPOINT_0_PORT, TESTPOINT_0_PIN);
    GPIOPinWrite(TESTPOINT_0_PORT, TESTPOINT_0_PIN, CLEAR);
    //D-4 = UNUSED
    //D-5 = UNUSED
    //D-6 = ADXL345 INTERRUPT
-   GPIOPinTypeGPIOInput(SENSORS_INT_PORT,ADXL_INT_PIN); /*!< Input*/
-   GPIOPadConfigSet(SENSORS_INT_PORT, ADXL_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
-   GPIOIntTypeSet(SENSORS_INT_PORT, ADXL_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
-   GPIOIntClear(SENSORS_INT_PORT,ADXL_INT_PIN);
+   GPIOPinTypeGPIOInput(ADXL_INT_PORT,ADXL_INT_PIN); /*!< Input*/
+   GPIOPadConfigSet(ADXL_INT_PORT, ADXL_INT_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD); /*!< Pull Down*/
+   GPIOIntTypeSet(ADXL_INT_PORT, ADXL_INT_PIN, GPIO_RISING_EDGE); /*!< Rising Edge Interrupt*/
+   GPIOIntClear(ADXL_INT_PORT,ADXL_INT_PIN);
    //D-7 = UNUSED
 
    //All Port D
-   GPIOIntEnable(GPIO_PORTD_BASE, SENSORS_INT_PINS);
+   GPIOIntEnable(GPIO_PORTD_BASE, ADXL_INT_PIN | GYRO_INT_PIN);
    IntEnable(INT_GPIOD);
    IntPrioritySet(INT_GPIOD, GPIO_INTERRUPT_PRIORITY__SENSOR_PIN);
 }
@@ -148,10 +147,15 @@ void portFInitialize(void)
 
 void IntGPIOd(void)
 {
-   UINT32 pinStatus = GPIOIntStatus(SENSORS_INT_PORT, 0xFF);/*!< Get all interrupts*/
-   if(pinStatus & SENSORS_INT_PINS)
+   UINT32 pinStatus = GPIOIntStatus(GPIO_PORTD_BASE, 0xFF);/*!< Get all interrupts*/
+   if(pinStatus & ADXL_INT_PIN)
    {
-      GPIOIntClear(SENSORS_INT_PORT,pinStatus & SENSORS_INT_PINS);
-      Sensors__InterruptIRQ(pinStatus & SENSORS_INT_PINS);
+      GPIOIntClear(ADXL_INT_PORT, pinStatus & ADXL_INT_PIN);
+      Sensors__InterruptIRQ(INTERRUPT_ACCEL);
+   }
+   if(pinStatus & GYRO_INT_PIN)
+   {
+     GPIOIntClear(GYRO_INT_PORT, pinStatus & GYRO_INT_PIN);
+     Sensors__InterruptIRQ(INTERRUPT_GYRO);
    }
 }

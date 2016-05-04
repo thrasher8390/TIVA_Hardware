@@ -60,6 +60,7 @@
 #define CTRL1_MINDR (0x00)
 #define CTRL1_MINBW (0x00)
 #define CTRL1_ODRHZ_100_12  (0x00)
+#define CTRL1_ODRHZ_400_20  (0x80)
 #define CTRL1_ODRHZ_400_110 (0xB0)
 #define CTRL1_ODRHZ_800_30  (0xC0)
 #define CTRL1_ENABLEXYZ (0x07)
@@ -81,12 +82,7 @@
 //*****************************************************************************
 //    Global Structs
 //*****************************************************************************
-struct Gyro_Data
-{
-   int32_t x;
-   int32_t y;
-   int32_t z;
-};
+
 
 //*****************************************************************************
 //		Global Functions

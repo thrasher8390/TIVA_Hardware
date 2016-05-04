@@ -9,6 +9,7 @@
 //*****************************************************************************
 
 #include "ADXL345.h"
+#include "SensorHelperFunctions.h"
 #include "I2C.h"
 
 //*****************************************************************************
@@ -19,13 +20,12 @@
 //		Data
 //*****************************************************************************
 static UINT8 RawADXLReadings[6];
-struct ADXL345_Data ValidatedADXLReadings; 	/*!< These values are read every Foreground cycle (UNDEFINED_FOREGROUND_CYCLE_TIME) */
+struct Sensor_Data ValidatedADXLReadings; 	/*!< These values are read every Foreground cycle (UNDEFINED_FOREGROUND_CYCLE_TIME) */
 uint8_t DeviceID;
 static BOOLEAN DataIsReady = FALSE;
 //*****************************************************************************
 //		local Functions
 //*****************************************************************************
-static void printADXL345Readings(const char *, struct ADXL345_Data);
 static void validateReadings(void);
 
 //*****************************************************************************
@@ -38,7 +38,7 @@ static void validateReadings(void);
 void ADXL345_Init()
 {
    //BW_rate
-   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_100))
+   while(!I2C_WriteVerify0(ADXL345_ADDRESS_0,ADXL345_BW_RATE,ADXL345_BWRATE_400))
    {}
 
 	//Data Format (pg26)
@@ -72,8 +72,6 @@ void ADXL345_Init()
 	//Init Information
 	DeviceID = I2C_Read0(ADXL345_ADDRESS_0, ADXL345_REG_UID);
 	//UARTprintf("ReadValue UID: %d\n",DeviceID);
-
-
 }
 
 /*!
@@ -87,6 +85,7 @@ void ADXL345_Read()
 
 /*!
  *\brief This processes the readings meaning that it needs to be called faster than what our data is coming in at.
+ *\details I'm running at 400Hz so I should have new data every
  */
 void ADXL345__ProcessReadings()
 {
@@ -95,7 +94,7 @@ void ADXL345__ProcessReadings()
    if(DataIsReady == TRUE)
    {
       DataIsReady = FALSE;
-      printADXL345Readings("Average ADXL345\n", ValidatedADXLReadings);
+      SenosorHelperFunctions__PrintSensorReadings("A:", ValidatedADXLReadings);
    }
 
 }
@@ -103,6 +102,12 @@ void ADXL345__ProcessReadings()
 //*****************************************************************************
 //		Local Functions
 //*****************************************************************************
+
+static float convert2ByteToFloat(UINT8 high, UINT8 low)
+{
+   UINT16 value = ((high << 8) + low);
+   return (float)(value & 0x8000 ? -(0x10000-value) : value);
+}
 
 /*!
  *\brief This pulls the readings from the Raw ADXL into validated ADXL
@@ -112,73 +117,24 @@ static void validateReadings()
    //error condition we didn't use the data before we are about to write over it
    if(DataIsReady == TRUE)
    {
-      //asm(" bpkt #0\n");
+      int i = 0;
    }
    //Pull out the data read from Accelerometer
    uint8_t xHigh  = RawADXLReadings[1];
    uint8_t xLow   = RawADXLReadings[0];
-   ValidatedADXLReadings.x = ((xHigh << 8) + xLow);
+   ValidatedADXLReadings.x = convert2ByteToFloat(xHigh, xLow);
 
    uint8_t yHigh  = RawADXLReadings[3];
    uint8_t yLow   = RawADXLReadings[2];
-   ValidatedADXLReadings.y = ((yHigh << 8) + yLow);
+   ValidatedADXLReadings.y = convert2ByteToFloat(yHigh, yLow);
 
    uint8_t zHigh  = RawADXLReadings[5];
    uint8_t zLow   = RawADXLReadings[4];
-   ValidatedADXLReadings.z = ((zHigh << 8) + zLow);
+   ValidatedADXLReadings.z = convert2ByteToFloat(zHigh, zLow);
+
+   SenosorHelperFunctions__Normalize(&ValidatedADXLReadings);
    DataIsReady = TRUE;
 }
-
-
-
-/*!
- * \brief prints out the x,y,z values in ADXL345_Data format
- */
-void printADXL345Readings(const char *tag, struct ADXL345_Data data)
-{
-	if(false)
-	{
-		UARTprintf(tag);
-		UARTprintf("ReadValueX: %d\n",data.x);
-		UARTprintf("ReadValueY: %d\n",data.y);
-		UARTprintf("ReadValueZ: %d\n",data.z);
-		UARTprintf("\n");
-	}
-	if(true)
-	{
-	   //x is negative
-	   if(data.x & 0x8000)
-	   {
-	      UARTprintf("-%d,",(0xFFFF-data.x));
-	   }
-	   else
-	   {
-	      UARTprintf("%d,",data.x);
-	   }
-
-      //y is negative
-      if(data.y & 0x8000)
-      {
-         UARTprintf("-%d,",(0xFFFF-data.y));
-      }
-      else
-      {
-         UARTprintf("%d,",data.y);
-      }
-
-      //z is negative
-      if(data.z & 0x8000)
-      {
-         UARTprintf("-%d",(0xFFFF-data.z));
-      }
-      else
-      {
-         UARTprintf("%d",data.z);
-      }
-      UARTprintf("\n");
-	}
-}
-
 
 //*****************************************************************************
 //    Interrupts

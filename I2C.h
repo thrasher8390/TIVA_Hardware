@@ -18,7 +18,7 @@
 //*****************************************************************************
 //    Defines
 //*****************************************************************************
-#define I2C_INT_MASK (I2C_MASTER_INT_DATA)
+#define I2C_INT_MASK (I2C_MASTER_INT_DATA | I2C_MASTER_INT_TIMEOUT)
 
 //*****************************************************************************
 //    Data Types
@@ -33,7 +33,7 @@ typedef enum
 
 typedef struct
 {
-    volatile BOOLEAN MultiReadActive;
+    BOOLEAN MultiReadActive;
     I2C_MULTREAD_STATES State;
     UINT16 Address;
     UINT16 Register;
@@ -51,6 +51,6 @@ extern void       I2C_Read0Multiiple(uint16_t device_address, uint16_t device_re
 extern void       I2C_Write0(uint16_t , uint16_t , uint8_t );
 extern BOOLEAN    I2C_WriteVerify0(uint16_t , uint16_t , uint8_t );
 extern void       I2C_Interrupt0(void);
-extern void       I2C__MultReadStart(void);
+extern void       I2C__MultReadStart();
 
 #endif /* I2C_H_ */
